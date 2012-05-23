@@ -28,7 +28,7 @@
 (defn not-silence?
  ([pattern]
     (let [[degrees value] pattern]
-      (is-silence? true degrees)))
+      (not-silence? true degrees)))
  ([val degrees]
     (if (empty? degrees)
       false
