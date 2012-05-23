@@ -73,22 +73,34 @@
   ([t bpm phrase]
      (let [quarterlength (beat-ms 1 bpm)
            thirtytwolength (/ quarterlength 8)
-           [notes values] phrase]
-       (player t thirtytwolength notes values)))
-  ([t length notes values]
-     (let [note (first notes)
+           [notes values] phrase
+           control (atom true)]
+       (player t thirtytwolength notes values control)
+       control))
+  ([t length notes values control]
+     (if (true? @control)
+       (let [note (first notes)
            value (first values)
            notelength (* length value)]
-       (when note
-         (at t (piano note)))
-       (let [next-time (+ t notelength)]
-         (apply-at next-time player [next-time length (rest notes) (rest values)])))))
+         (when note
+           (at t (piano note)))
+         (let [next-time (+ t notelength)]
+           (apply-at next-time player [next-time length (rest notes) (rest values) control])))
+       control)))
+
+(defn player-stop
+  [control]
+  (reset! control false))
 
 (defn pattern-cycle
   [pattern]
   (let [[notes values] pattern]
     [(cycle notes) (cycle values)]))
 
-(player (now) 120 (pattern-cycle (resolve-pattern :melodic-minor-asc :E4 (gen-pattern :melodic-minor-asc 11 8))))
+(def rh (player (now) 120 (pattern-cycle (resolve-pattern :melodic-minor-asc :E2 (gen-pattern :melodic-minor-asc 2 8)))))
+(def mel (player (now) 120 (pattern-cycle (resolve-pattern :melodic-minor-asc :E2 (gen-pattern :melodic-minor-asc 8 4)))))
+
+(player-stop rh)
+(player-stop mel)
 
 (stop)
