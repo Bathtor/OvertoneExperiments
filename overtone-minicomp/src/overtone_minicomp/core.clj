@@ -1,5 +1,6 @@
 (ns overtone-minicomp.core
   (:use overtone.core))
+;;(connect-external-server "192.168.0.1" 57110)
 (connect-external-server 57110)
 (use 'overtone.inst.piano)
 
@@ -24,8 +25,24 @@
           value
           (recur bound)))))
 
+(defn not-silence?
+ ([pattern]
+    (let [[degrees value] pattern]
+      (is-silence? true degrees)))
+ ([val degrees]
+    (if (empty? degrees)
+      false
+      (let [degree (first degrees)]
+        (if degree
+          true
+          (recur val (rest degrees)))))))
+
 (defn gen-pattern
-  ([scale length frac] (gen-pattern (resolve-scale scale) length frac [] []))
+  ([scale length frac]
+     (let [pattern (gen-pattern (resolve-scale scale) length frac [] [])]
+       (if (not-silence? pattern)
+         pattern
+         (recur scale length frac))))
   ([scale length frac notes values]
      (let [remain (in32s length frac)
            value (in32s 1 (choose-value remain))
@@ -46,7 +63,11 @@
         notes (degrees->pitches degrees scale root)]
     [notes values]))
 
-(gen-pattern :diatonic 4 4)
+
+
+
+
+(gen-pattern :diatonic 1 4)
 
 (defn player
   ([t bpm phrase]
