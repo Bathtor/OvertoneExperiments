@@ -97,10 +97,15 @@
   (let [[notes values] pattern]
     [(cycle notes) (cycle values)]))
 
-(def rh (player (now) 120 (pattern-cycle (resolve-pattern :melodic-minor-asc :E2 (gen-pattern :melodic-minor-asc 2 8)))))
-(def mel (player (now) 120 (pattern-cycle (resolve-pattern :melodic-minor-asc :E2 (gen-pattern :melodic-minor-asc 8 4)))))
+(def pat (gen-pattern :melodic-minor-asc 11 8))
+
+(def rh (player (now) 120 (pattern-cycle (resolve-pattern :melodic-minor-asc :E3 (gen-pattern :melodic-minor-asc 2 8)))))
+(def mel (player (now) 120 (pattern-cycle (resolve-pattern :melodic-minor-asc :E4 pat))))
+(def mel2 (player (now) 125 (pattern-cycle (resolve-pattern :melodic-minor-asc :E5 pat))))
+
 
 (player-stop rh)
 (player-stop mel)
+(player-stop mel2)
 
 (stop)
