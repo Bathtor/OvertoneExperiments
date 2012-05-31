@@ -92,17 +92,71 @@
   [control]
   (reset! control false))
 
+(defn augment
+  ([pattern]
+     (let [[notes values] pattern]
+       [notes (augment values [])]))
+  ([rem value]
+     (if (empty? rem)
+       value
+       (let [val (first rem)
+             dval (* 2 val)]
+       (recur (rest rem) (conj value dval)))))
+  )
+
+(defn dimin
+  ([pattern]
+     (let [[notes values] pattern]
+       [notes (dimin values [])]))
+  ([rem value]
+     (if (empty? rem)
+       value
+       (let [val (first rem)
+             dval (/ val 2)]
+         (recur (rest rem) (conj value dval)))))
+  )
+
 (defn pattern-cycle
   [pattern]
   (let [[notes values] pattern]
     [(cycle notes) (cycle values)]))
 
+(defn subpattern
+  [pattern start count]
+  (let [[notes values] pattern]
+    [(subvec notes start count) (subvec values start count)]))
+
+(defn pattern-repeat
+  ([pattern repeats]
+     (pattern-repeat pattern repeats []))
+  ([pattern rep res]
+     (if (= 0 rep) res
+         (recur pattern (- rep 1) (conj res pattern)))
+     )
+  )
+
+(defn additive-cycle
+  ([pattern period]
+     (let [[notes values] pattern
+           notecount (count notes)]
+       (additive-cycle notes values period notecount notecount [] []))
+     )
+  ([notes values period togo notecount resultnotes resultvalues]
+     (if (= 0 togo)
+       [(conj resultnotes (cycle notes)) (conj resultvalues (cycle values))]
+       (let [newtogo (- togo 1)
+             length (- notecount newtogo)]
+         (recur notes values period newtogo notecount (pattern-repeat (subvec notes 0 length) period) (pattern-repeat (subvec values 0 length) period))))))
+
 (def pat (gen-pattern :melodic-minor-asc 11 8))
+
 
 (def rh (player (now) 120 (pattern-cycle (resolve-pattern :melodic-minor-asc :E3 (gen-pattern :melodic-minor-asc 2 8)))))
 (def mel (player (now) 120 (pattern-cycle (resolve-pattern :melodic-minor-asc :E4 pat))))
 (def mel2 (player (now) 125 (pattern-cycle (resolve-pattern :melodic-minor-asc :E5 pat))))
-
+(def mel3  (player (now) 120 (pattern-cycle (resolve-pattern :melodic-minor-asc :E3 (augment pat)))))
+(def mel4 (player (now) 120 (pattern-cycle (resolve-pattern :melodic-minor-asc :E3 (dimin pat)))))
+(def mel5 (player (now) 120 (additive-cycle (resolve-pattern :melodic-minor-asc :E2 pat) 2)))
 
 (player-stop rh)
 (player-stop mel)
